@@ -234,8 +234,7 @@ setwd('C:/Users/sthomas/OneDrive - University of California, San Diego Health/Mo
 
 
 ## You only need to do normalization once ######################################################
-## If you've already done it, you can skip to this step ##
-## Total bile acid composition ##
+## If you've already done it, you can skip to this step 
 metadata <- read.delim("Metadata_All.tsv")
 metadata$host_subject_id <- paste0(metadata$Cage, "_", metadata$Hypothesis, "_", metadata$Batch)
 metadata$Experiment <- paste0(metadata$Hypothesis, "_", metadata$AMP)
@@ -253,7 +252,7 @@ TIC <- read.csv("Metabolites_TIC.csv")
 data <- inner_join(metadata, norm, by = "Sample") 
 data <- data %>% dplyr::select(Sample:Experiment, any_of(bile_lib$Metabolite))
 
-# Create venn diagram with amount of bile acids and blood and feces
+## Create venn diagram with amount of bile acids and blood and feces
 venn <- data %>% pivot_longer(cols =c(starts_with("X")), names_to = "Bile_Acids", values_to = "Expression")
 venn$Expression[venn$Expression == 0] <- NA
 venn <- venn %>%  filter(!is.na(Expression))
@@ -277,7 +276,7 @@ ggplot(test, aes(x=Days_Post_Birth, y=Expression)) +
   #theme(legend.position = "none") +
   facet_wrap(~LibraryID, scales = "free_y") 
 
-# Serum vs. Fecal
+## Serum vs. Fecal
 x <- list(A = venn %>% filter(Type == "Serum") %>% select(Bile_Acids) %>% unlist(),
           B = venn %>% filter(Type == "Fecal") %>% select(Bile_Acids) %>% unlist(), 
           C = venn %>% filter(Mother_Infant == "Mother") %>% select(Bile_Acids) %>% unlist(),
@@ -287,7 +286,7 @@ ggVennDiagram(x, category.names = c("Serum", "Fecal", "Mother", "Infant"), label
   theme(legend.position = "none")
 rm(x)
 
-# Plot number of bile acids found in each condition
+## Plot number of bile acids found in each condition
 nb <- venn %>% filter(Type == "Fecal") %>% filter(Mother_Infant == "Infant") %>% group_by(Days_Post_Birth, Hypothesis, AMP, Experiment, Sample) %>% count(host_subject_id) #%>% filter(n > 100)
 ggplot(nb, aes(x = as.factor(Days_Post_Birth), y = n, fill = AMP)) +
   geom_boxplot(outlier.shape = NA, alpha = 0.5) +
@@ -296,7 +295,7 @@ ggplot(nb, aes(x = as.factor(Days_Post_Birth), y = n, fill = AMP)) +
   theme_minimal() +
   facet_wrap(~Hypothesis)
 
-# Plot total abundance of BAs in each condition
+## Plot total abundance of BAs in each condition
 abt <- inner_join(metadata, TIC, by = "Sample") 
 abt <- abt %>% dplyr::select(Sample:Experiment, any_of(bile_lib$Metabolite))
 abt <- abt %>% pivot_longer(cols =c(starts_with("X")), names_to = "Bile_Acids", values_to = "Expression")
@@ -309,7 +308,7 @@ ggplot(abt, aes(x = as.factor(Days_Post_Birth), y = n, fill = AMP)) +
   facet_wrap(~Hypothesis)
 
 
-# Look at detection frequency for each bile type
+## Look at detection frequency for each bile type
 total <- venn %>% filter(Type == "Fecal" & Mother_Infant == "Mother") %>% count(Sample)
 types <- venn %>% filter(Type == "Fecal" & Mother_Infant == "Mother") %>% group_by(Bile_Type) %>% count(LibraryID) %>% summarise(per = mean(n)/nrow(total)) %>% arrange(Bile_Type)
 types$Bile_Type <- factor(types$Bile_Type, levels = c("Penta", "Tetra", "Tri","Di", "Mono", "Non"))
@@ -318,7 +317,7 @@ ggplot(types, aes(x = Bile_Type, y = per, fill = Bile_Type)) +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   coord_flip()
 
-# Look at percent levels of each bile type in blood and feces
+## Look at percent levels of each bile type in blood and feces
 types <- venn %>% group_by(Type, Mother_Infant) %>% count(Bile_Type)
 ggplot(types, aes(x = Type, y = n, fill = Bile_Type)) +
   geom_bar(position = "fill", stat = "identity") +
@@ -326,7 +325,7 @@ ggplot(types, aes(x = Type, y = n, fill = Bile_Type)) +
   facet_wrap(~Mother_Infant)
 
 ## Look at bile acid abundance in fecal samples #####################################################################################
-## For this we want to use imputed data 
+## For this we want to use imputed and batch corrected data 
 data <- inner_join(metadata, norm_imp, by = "Sample") 
 data <- data %>% dplyr::select(Sample:Experiment, any_of(bile_lib$Metabolite))
 
@@ -652,7 +651,7 @@ phyp_I$p.adj.BH <- p.adjust(phyp_I$p.adj, method = "BH")
 phyp_I$p.adj.char <- ifelse(phyp_I$p.adj.BH < 0.001, "***", ifelse(phyp_I$p.adj.BH < 0.01, "**", ifelse(phyp_I$p.adj.BH < 0.05, "*", "")))
 phyp_I <- inner_join(bile_lib, phyp_I, by = c("Metabolite" = "Bile_Acids"))
 
-## Line plot of significant changes
+## Line plot
 b <- "X2546_i"
 
 plot <- data %>% dplyr::select(Sample:Experiment, !!sym(b)) %>% filter(Mother_Infant == "Infant")
@@ -766,7 +765,7 @@ bile_plot$Hypothesis <- as.factor(bile_plot$Hypothesis)
 ggscatter(bile_plot, x = "Mean", y = "Expression", shape = "Hypothesis", add = "reg.line",  conf.int = TRUE, 
           cor.method = "spearman") + stat_cor() + facet_wrap(~Sex)
 
-######### Look at bile acids over time ##############################################
+######### Look at bile acids over time using SantaR ##############################################
 snt <- read.csv("Metabolites_normalized.csv")
 snt[snt == 0] <- NA
 
@@ -926,34 +925,3 @@ ggplot(data=feat, aes(x=Component_1, y=Component_2)) +
 ggplot(data=feat, aes(x=Component_1, y=Component_2, color=!!sym(b))) +
   geom_point() + 
   labs(x='Component 1', y='Component 2')
-
-## MicrobeMASST #########################################################################
-mmasst <- read.csv("mmasst_summary_mouse_spectral_matches.csv") 
-mmasst <- mmasst %>% dplyr::select(NCBI:Level, any_of(bile_lib$Metabolite))
-fil <- mmasst %>% 
-  filter(str_detect(NCBI, "qc|blank|Homo")) %>% 
-  dplyr::select(starts_with("X")) %>% 
-  dplyr::select(where(~sum(.) == 0))
-mmasst <- mmasst %>% dplyr::select(NCBI:Level, any_of(colnames(fil))) %>% filter(!str_detect(NCBI, "qc|blank|Homo"))
-mmasst <- mmasst %>% 
-  dplyr::select(starts_with("X")) %>% 
-  summarise_if(is.numeric, ~sum(.)) %>% 
-  t() %>% as.data.frame() %>% rownames_to_column("Metabolite") %>% rename(Sum = V1)
-
-
-mmasst <- inner_join(mmasst, bile_lib, by = "Metabolite")
-mmasst$Cat <- ifelse(mmasst$Sum <= quantile(mmasst$Sum, 0.1), "Low", ifelse(mmasst$Sum >= quantile(mmasst$Sum, 0.9), "High", NA))
-mmasst_f <- mmasst %>% filter(!is.na(Cat))
-
-plot <- norm_imp %>% dplyr::select(Sample, any_of(mmasst_f$Metabolite)) %>% pivot_longer(starts_with("X"), names_to = "Bile_Acids", values_to = "Expression")
-plot <- inner_join(plot, mmasst_f, by = c("Bile_Acids" = "Metabolite"))
-plot <- plot %>% group_by(Sample, Cat) 
-plot <- inner_join(plot, metadata, by = "Sample")
-plot <- plot %>% filter(Mother_Infant == "Mother") %>% filter(Type == "Fecal") %>% filter(Hypothesis < 3)
-plot$Experiment <- str_replace_all(plot$Experiment, ".*FALSE", "Control")
-
-ggplot(plot, aes(x=Days_Post_Birth, y=Expression, color=as.factor(Experiment))) +
-  geom_smooth(method = "loess", se = FALSE) +
-  geom_point(alpha = 0.5) +
-  theme_minimal() +
-  facet_wrap(Bile_Acids~Cat, scales = "free_y")
