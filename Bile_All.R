@@ -212,7 +212,7 @@ setwd('C:/Users/sthomas/OneDrive - University of California, San Diego Health/Mo
 # write_csv(data, "Metabolites_normalized_imputed_bc.csv")
 # 
 # ## Distance matrix to check how well it worked ######################################################
-# norm <- read.csv("Metabolites_TIC.csv")
+# norm <- read.csv("Metabolites_normalized_imputed_bc.csv")
 # data <- inner_join(metadata, norm, by = "Sample")
 # data1 <- data %>%
 #   filter(Type == "Fecal") %>% filter(Mother_Infant == "Mother") %>%
