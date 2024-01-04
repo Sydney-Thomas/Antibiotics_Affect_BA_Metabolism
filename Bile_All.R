@@ -353,6 +353,11 @@ ggplot(RT, aes(x=Days_Post_Birth, y=Expression, color=as.factor(Experiment))) +
   theme_minimal() +
   facet_wrap(Mother_Infant~LibraryID, ncol = 5, scales = "free_y")
 
+pval_RT <- RT %>% group_by(Days_Post_Birth, Mother_Infant, Bile_Acids) %>% tukey_hsd(Expression ~ as.factor(Experiment))
+pval_RT$p.adj.BH <- p.adjust(pval_RT$p.adj, method = "BH")
+pval_RT$p.adj.char <- ifelse(pval_RT$p.adj.BH < 0.001, "***", ifelse(pval_RT$p.adj.BH < 0.01, "**", ifelse(pval_RT$p.adj.BH < 0.05, "*", "")))
+pval_RT <- inner_join(pval_RT, bile_lib, by = c("Bile_Acids" = "Metabolite"))
+
 # Average for each group
 average <- data %>% 
   filter(Type == "Fecal") %>% 
