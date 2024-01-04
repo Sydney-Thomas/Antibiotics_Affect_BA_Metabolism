@@ -219,7 +219,7 @@ setwd('C:/Users/sthomas/OneDrive - University of California, San Diego Health/Mo
 #   arrange(Hypothesis)
 # data1 <- column_to_rownames(data1, var = "Sample")
 # data2 <- data1 %>%
-#   dplyr::select(-(Hypothesis:Experiment))
+#   dplyr::select(-(Hypothesis:Run))
 # 
 # # Plot distance matrix. This will show how similar each of your sample sets are to each other. 0 = most similar
 # res.dist <- get_dist(data2, method = "spearman")
@@ -277,10 +277,10 @@ ggplot(test, aes(x=Days_Post_Birth, y=Expression)) +
   facet_wrap(~LibraryID, scales = "free_y") 
 
 ## Serum vs. Fecal
-x <- list(A = venn %>% filter(Type == "Serum") %>% select(Bile_Acids) %>% unlist(),
-          B = venn %>% filter(Type == "Fecal") %>% select(Bile_Acids) %>% unlist(), 
-          C = venn %>% filter(Mother_Infant == "Mother") %>% select(Bile_Acids) %>% unlist(),
-          D = venn %>% filter(Mother_Infant == "Infant") %>% select(Bile_Acids) %>% unlist())
+x <- list(A = venn %>% filter(Type == "Serum") %>% dplyr::select(Bile_Acids) %>% unlist(),
+          B = venn %>% filter(Type == "Fecal") %>% dplyr::select(Bile_Acids) %>% unlist(), 
+          C = venn %>% filter(Mother_Infant == "Mother") %>% dplyr::select(Bile_Acids) %>% unlist(),
+          D = venn %>% filter(Mother_Infant == "Infant") %>% dplyr::select(Bile_Acids) %>% unlist())
 ggVennDiagram(x, category.names = c("Serum", "Fecal", "Mother", "Infant"), label_alpha = 0) +
   scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") +
   theme(legend.position = "none")
